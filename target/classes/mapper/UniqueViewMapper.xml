@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.du.du_blog.dao.UniqueViewMapper">
+    <select id="listUniqueViews" resultType="UniqueViewDTO">
+        select
+        Date_Format(create_time,"%Y-%m-%d") as day,
+        views_count
+        from
+        unique_view
+        where
+        create_time between #{startTime} and #{endTime}
+        order by
+        create_time
+    </select>
+</mapper>

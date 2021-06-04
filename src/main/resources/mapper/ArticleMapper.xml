@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.du.du_blog.dao.ArticleMapper">
+    <resultMap id="ArticleHomeDTOMap" type="ArticleHomeDTO">
+        <id column="id" property="id"/>
+        <result column="article_cover" property="articleCover"/>
+        <result column="article_title" property="articleTitle"/>
+        <result column="article_content" property="articleContent"/>
+        <result column="create_time" property="createTime"/>
+        <result column="is_top" property="isTop"/>
+        <result column="cid" property="categoryId"/>
+        <result column="category_name" property="categoryName"/>
+        <collection property="tagDTOList" ofType="TagDTO">
+            <result column="tid" property="id"/>
+            <result column="tag_name" property="tagName"/>
+        </collection>
+    </resultMap>
+<!--
+            a.id,
+            article_title,
+            is_top,
+            is_draft,
+            a.is_delete,
+            a.create_time,
+            a.update_time,
+            category_name,
+            t.id AS tag_id,
+            t.tag_name-->
+    <resultMap id="ArticleBackDTOMap" type="ArticleBackDTO">
+        <id column="id" property="id"/>
+        <result column="article_title" property="articleTitle"/>
+        <result column="is_top" property="isTop"/>
+        <result column="is_draft" property="isDraft"/>
+        <result column="is_delete" property="isDelete"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="createTime"/>
+        <result column="category_name" property="categoryName"/>
+        <collection property="tagDTOList" ofType="TagDTO">
+            <result column="tag_id" property="id"/>
+            <result column="tag_name" property="tagName"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="ArticleDTOMap" type="ArticleDTO">
+        <id column="id" property="id"/>
+        <result column="article_cover" property="articleCover"/>
+        <result column="article_title" property="articleTitle"/>
+        <result column="article_content" property="articleContent"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="category_name" property="categoryName"/>
+        <collection property="tagDTOList" ofType="TagDTO">
+            <id column="tag_id" property="id"/>
+            <result column="tag_name" property="tagName"/>
+        </collection>
+    </resultMap>
+
+    <!--
+            a.id,
+            a.article_cover,
+            a.article_title,
+            a.create_time,
+            a.category_id,
+            c.category_name,
+            t.id AS tag_id,
+            t.tag_name
+    -->
+    <resultMap id="ArticlePreviewDTOMap" type="ArticlePreviewDTO">
+        <id column="id" property="id"/>
+        <result column="article_cover" property="articleCover"/>
+        <result column="article_title" property="articleTitle"/>
+        <result column="create_time" property="createTime"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="category_name" property="categoryName"/>
+        <collection property="tagDTOList" ofType="TagDTO">
+            <id column="tag_id" property="id"/>
+            <result column="tag_name" property="tagName"/>
+        </collection>
+    </resultMap>
+
+    <select id="listArticles" resultMap="ArticleHomeDTOMap">
+        select
+            a.id,
+            a.article_cover,
+            a.article_title,
+            a.article_content,
+            a.create_time,
+            a.is_top,
+            c.id as cid,
+            c.category_name,
+            t.id as tid,
+            t.tag_name
+        from
+            article a
+            join category c on a.category_id=c.id
+            join article_tag atg on a.id=atg.article_id
+            join tag t on atg.tag_id=t.id
+            where a.is_draft=0 and a.is_delete=0
+            order by a.is_top DESC,a.id DESC
+            limit #{current} , 10
+    </select>
+
+    <select id="countArticles" resultType="Integer">
+        select
+            count(1)
+        from
+            article
+        <where>
+            is_delete=#{condition.isDelete}
+            <if test="condition.isDraft!=null">
+                and is_draft=#{condition.isDraft}
+            </if>
+            <if test="condition.keywords!=null">
+                and article_title like concat('%',#{condition.isDraft},'%')
+            </if>
+        </where>
+    </select>
+
+
+    <select id="listArticlesBack" resultMap="ArticleBackDTOMap">
+        select
+            a.id,
+            article_title,
+            is_top,
+            is_draft,
+            a.is_delete,
+            a.create_time,
+            a.update_time,
+            category_name,
+            t.id AS tag_id,
+            t.tag_name
+        from
+        (
+        select
+            id,
+            category_id,
+            article_title,
+            is_top,
+            is_draft,
+            is_delete,
+            create_time,
+            update_time
+        from
+            article
+        order by is_top desc,create_time desc
+        limit #{condition.current},#{condition.size}
+        )a
+            left join category c on a.category_id=c.id
+            left join article_tag atg on a.id=atg.article_id
+            left join tag t on atg.tag_id=t.id
+        <where>
+            is_delete=#{condition.isDelete}
+            <if test="condition.isDraft!=null">
+                and is_draft=#{condition.isDraft}
+            </if>
+            <if test="condition.keywords!=null">
+                and article_title like concat('%',#{condition.keywords},'%')
+            </if>
+        </where>
+        order by a.is_top desc,a.create_time desc
+    </select>
+
+    <select id="selectArticleById" resultMap="ArticleDTOMap">
+        SELECT
+             a.id,
+             article_cover,
+             article_title,
+             article_content,
+             a.create_time,
+             a.update_time,
+             a.category_id,
+             category_name,
+             t.id AS tag_id,
+             t.tag_name
+         FROM
+             article a
+             JOIN category c ON a.category_id = c.id
+             JOIN article_tag atg ON a.id = atg.article_id
+             JOIN tag t ON t.id = atg.tag_id
+         WHERE
+             a.id = #{articleId}
+    </select>
+
+    <select id="listArticleRecommends" resultType="ArticleRecommendDTO">
+        select
+            DISTINCT
+            a2.id,
+            a2.article_title,
+            a2.article_cover,
+            a2.create_time
+        from
+            (
+            select
+                tag_id
+            from
+                article a1
+                join article_tag atg1 on atg1.article_id=a1.id
+                join tag t on atg1.tag_id=t.id
+            where
+                a1.id=#{articleId}
+            ) t1
+        join article_tag atg2 on atg2.tag_id=t1.tag_id
+        join article a2 on atg2.article_id=a2.id
+        where a2.id != #{articleId}
+        order by a2.id
+        limit 6
+    </select>
+
+    <select id="listArticlesByCondition" resultMap="ArticlePreviewDTOMap">
+        select
+            a.id,
+            a.article_cover,
+            a.article_title,
+            a.create_time,
+            a.category_id,
+            c.category_name,
+            t.id AS tag_id,
+            t.tag_name
+        from
+            article a
+            join category c on a.category_id=c.id
+            join article_tag atg on atg.article_id=a.id
+            join tag t on atg.tag_id=t.id
+        <where>
+            <if test="condition.tagId!=null">
+                and t.id=#{condition.tagId}
+            </if>
+            <if test="condition.categoryId">
+                and c.id=#{condition.categoryId}
+            </if>
+            and a.is_delete=0
+            and a.is_draft=0
+        </where>
+        order by a.id desc
+        limit #{condition.current} , 9
+    </select>
+
+    <select id="listArticleRank" resultType="Article">
+        select
+        id,
+        article_title
+        from
+        article
+        where id in
+        <foreach collection="articleIdList" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

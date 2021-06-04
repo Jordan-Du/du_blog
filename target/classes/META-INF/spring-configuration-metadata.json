@@ -1,0 +1,28 @@
+{
+  "groups": [
+    {
+      "name": "blog.jwt",
+      "type": "com.du.du_blog.utils.JWTUtils",
+      "sourceType": "com.du.du_blog.utils.JWTUtils"
+    }
+  ],
+  "properties": [
+    {
+      "name": "blog.jwt.expire",
+      "type": "java.lang.Long",
+      "sourceType": "com.du.du_blog.utils.JWTUtils",
+      "defaultValue": 0
+    },
+    {
+      "name": "blog.jwt.header",
+      "type": "java.lang.String",
+      "sourceType": "com.du.du_blog.utils.JWTUtils"
+    },
+    {
+      "name": "blog.jwt.secure",
+      "type": "java.lang.String",
+      "sourceType": "com.du.du_blog.utils.JWTUtils"
+    }
+  ],
+  "hints": []
+}

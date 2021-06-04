@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.du.du_blog.dao.CommentMapper">
+    <select id="listComments" resultType="CommentDTO">
+        select
+        u.nickname,
+        u.avatar,
+        u.web_site,
+        c.user_id,
+        c.id,
+        c.comment_content,
+        c.create_time
+        from
+        comment c
+        join user_info u on c.user_id=u.id
+        <where>
+            <if test="articleId!=null">
+                article_id=#{articleId}
+            </if>
+            <if test="articleId==null">
+                article_id is null
+            </if>
+            and c.is_delete=0
+            and parent_id is null
+        </where>
+        order by
+        c.create_time desc
+        limit #{current},10
+    </select>
+    <select id="listReplies" resultType="ReplyDTO">
+        select *
+        from
+        (select
+        c.user_id,
+        u.nickname,
+        u.avatar,
+        u.web_site,
+        c.reply_id,
+        r.nickname AS reply_nickname,
+        r.web_site AS reply_web_site,
+        c.id,
+        c.parent_id,
+        c.comment_content,
+        c.create_time,
+        row_number() over (partition by parent_id order by create_time ASC) row_num
+        from
+        comment c
+        join user_info u on c.user_id=u.id
+        join user_info r on c.reply_id=r.id
+        where
+        c.is_delete=0
+        and
+        c.parent_id
+        in
+        (<foreach collection="commentIdList"  separator="," item="commentId">
+        #{commentId}
+    </foreach>)
+        ) t
+        where row_num &lt; 6
+    </select>
+
+    <select id="listRepliesByCommentId" resultType="ReplyDTO">
+        select
+        c.user_id,
+        u.nickname,
+        u.avatar,
+        u.web_site,
+        c.reply_id,
+        r.nickname AS reply_nickname,
+        r.web_site AS reply_web_site,
+        c.id,
+        c.parent_id,
+        c.comment_content,
+        c.create_time,
+        row_number() over (partition by parent_id order by create_time ASC) row_num
+        from
+        comment c
+        join user_info u on c.user_id=u.id
+        join user_info r on c.reply_id=r.id
+        where
+        c.is_delete=0
+        and
+        parent_id =#{commentId}
+        ORDER BY create_time ASC
+        LIMIT #{current},5
+    </select>
+
+    <select id="listReplyCountByCommentId" resultType="ReplyCountDTO">
+        select
+        parent_id as comment_id,
+        count(1) as reply_count
+        from
+        comment
+        where
+         is_delete=0
+         and
+         parent_id
+        in
+        <foreach collection="commentIdList" open="(" separator="," close=")" item="commentId">
+               #{commentId}
+        </foreach>
+        group by
+        parent_id
+    </select>
+
+    <select id="listCommentBackDTO" resultType="CommentBackDTO">
+        select
+        c.id,
+        u.avatar,
+        u.nickname,
+        r.nickname AS reply_nickname,
+        a.article_title,
+        c.comment_content,
+        c.create_time,
+        c.is_delete
+        from
+        comment c
+        LEFT JOIN article a ON c.article_id = a.id
+        LEFT JOIN user_info u ON c.user_id = u.id
+        LEFT JOIN user_info r ON c.reply_id = r.id
+        <where>
+            c.is_delete=#{condition.isDelete}
+            <if test="condition.keywords!=null">
+                and u.nickname like concat('%',#{condition.keywords},'%')
+            </if>
+        </where>
+        order by
+        c.create_time desc
+        Limit #{condition.current},#{condition.size}
+    </select>
+
+    <select id="countCommentDTO" resultType="java.lang.Integer">
+        select
+        count(1)
+        from
+        comment c
+        left join user_info u on c.user_id=u.id
+        <where>
+            c.is_delete=#{condition.isDelete}
+            <if test="condition.keywords!=null">
+                and  u.nickname like cancat('%',#{condition.keywords},'%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

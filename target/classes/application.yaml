@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    url: xxx
+    username: xxx
+    password: xxx
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    host: localhost
+    post: 6379
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: xxx
+    password: xxx
+
+  mail:
+    host: smtp.qq.com
+    username: xxx@qq.com
+    password: xxx
+    default-encoding: UTF-8
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.du.du_blog
+  global-config:
+    db-config:
+      logic-delete-field: flag
+server:
+  port: 8081
+
+blog:
+  jwt:
+    header: xxx
+    expire: 0 #七天（单位：秒）
+    secure: xxx

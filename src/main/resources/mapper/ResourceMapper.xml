@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.du.du_blog.dao.ResourceMapper">
+    <resultMap id="ResourceDTOMap" type="ResourceDTO">
+        <id column="pid" property="id"/>
+        <result column="prn" property="resourceName"/>
+        <result column="pct" property="createTime"/>
+        <result column="pisd" property="isDisable"/>
+        <result column="pia" property="isAnonymous"/>
+        <collection property="children" ofType="ResourceDTO">
+            <result column="cid" property="id"/>
+            <result column="crn" property="resourceName"/>
+            <result column="cu" property="url"/>
+            <result column="crm" property="requestMethod"/>
+            <result column="cct" property="createTime"/>
+            <result column="cisd" property="isDisable"/>
+            <result column="cia" property="isAnonymous"/>
+        </collection>
+    </resultMap>
+    <resultMap id="labelOptionDTOMap" type="labelOptionDTO">
+        <id column="pid" property="id"/>
+        <result column="prn" property="label"/>
+        <collection property="children" ofType="labelOptionDTO">
+            <result column="cid" property="id"/>
+            <result column="crn" property="label"/>
+        </collection>
+    </resultMap>
+    <select id="listResources" resultMap="ResourceDTOMap">
+        select
+        p.id as pid,
+        p.resource_name as prn,
+        p.create_time as pct,
+        p.is_disable as pisd,
+        p.is_anonymous as pia,
+        cd.id as cid,
+        cd.resource_name as crn,
+        cd.url as cu,
+        cd.request_method as crm,
+        cd.create_time as cct,
+        cd.is_disable as cisd,
+        cd.is_anonymous as cia
+        from
+        resource p
+        join resource cd on cd.parent_id=p.id
+
+    </select>
+
+    <select id="listResourceOption" resultMap="labelOptionDTOMap">
+        select
+        p.id pid,
+        p.resource_name prn,
+        ch.id cid,
+        ch.resource_name crn
+        from
+        resource p
+        join resource ch on ch.parent_id=p.id
+    </select>
+</mapper>

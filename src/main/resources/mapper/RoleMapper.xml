@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.du.du_blog.dao.RoleMapper">
+
+    <resultMap id="RoleDTOMap" type="RoleDTO">
+        <id column="id" property="id"/>
+        <result column="role_name" property="roleName"/>
+        <result column="role_label" property="roleLabel"/>
+        <result column="create_time" property="createTime"/>
+        <result column="is_disable" property="isDisable"/>
+        <collection property="resourceIdList" ofType="java.lang.Integer">
+            <constructor>
+                <arg column="resource_id"/>
+            </constructor>
+        </collection>
+        <collection property="menuIdList" ofType="java.lang.Integer">
+            <constructor>
+                <arg column="menu_id"/>
+            </constructor>
+        </collection>
+    </resultMap>
+
+    <!--
+            rs.id,
+            rs.url,
+            rs.requestMethod,
+            r.role_name,
+            rs.is_anonymous-->
+    <resultMap id="ResourceRoleDTOMap" type="ResourceRoleDTO">
+        <id column="id" property="id"/>
+        <result column="url" property="url"/>
+        <result column="request_method" property="requestMethod"/>
+        <result column="is_anonymous" property="isAnonymous"/>
+        <collection property="roleList" ofType="java.lang.String">
+            <constructor>
+                <arg column="role_label"/>
+            </constructor>
+        </collection>
+    </resultMap>
+    <select id="listRolesByUserInfoId" resultType="String">
+    select r.role_label from
+    role r,user_info ui,user_role ur
+    where r.id=ur.role_id
+    and ui.id=ur.user_id
+    and ur.user_id=#{userInfoId}
+  </select>
+
+
+    <select id="listRoles" resultMap="RoleDTOMap">
+        select
+            r.id,
+            r.role_name,
+            r.role_label,
+            r.create_time,
+            r.is_disable,
+            rr.resource_id,
+            rm.menu_id
+        from
+        (
+        select
+            id,
+            role_name,
+            role_label,
+            create_time,
+            is_disable
+        from
+            role
+        <where>
+            <if test="condition.keywords!=null">
+                role_name like concat('%',#{condition.keywords},'%')
+            </if>
+        </where>
+        order by id desc
+        limit #{condition.current},#{condition.size}
+        )r
+            left join role_resource rr on r.id=rr.role_id
+            left join role_menu rm on r.id=rm.role_id
+        order by r.id desc
+    </select>
+
+    <select id="listResourceRoles" resultMap="ResourceRoleDTOMap">
+        select
+            rs.id,
+            rs.url,
+            rs.request_method,
+            r.role_label,
+            rs.is_anonymous
+        from
+            resource rs
+            left join role_resource rr on rr.resource_id=rs.id
+            left join role r on r.id=rr.role_id
+        where
+            rs.is_anonymous=0
+            and parent_id is NOT NULL
+    </select>
+</mapper>
